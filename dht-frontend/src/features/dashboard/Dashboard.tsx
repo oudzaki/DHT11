@@ -197,5 +197,5 @@ export default function Dashboard() {
   );
 }
 
-const th: React.CSSProperties = { textAlign: "left", padding: 8, borderBottom: "1px solid #e5e7eb" };
+// const th: React.CSSProperties = { textAlign: "left", padding: 8, borderBottom: "1px solid #e5e7eb" };
 const td: React.CSSProperties = { padding: 8, borderBottom: "1px solid #f1f5f9", fontSize: 14 };
