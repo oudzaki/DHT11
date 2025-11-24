@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "axios": "^1.12.2",
+    "dayjs": "^1.11.18",
+    "react-router-dom": "^7.9.4",
+    "recharts": "^3.3.0"
+  }
+}
