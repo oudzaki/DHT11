@@ -10,3 +10,4 @@ export async function getAllReadings(): Promise<Reading[]> {
   const { data } = await pub.get<Reading[]>("/api/readings/");
   return data;
 }
+

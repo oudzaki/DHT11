@@ -18,11 +18,12 @@ from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from DHT.views import ReadingListCreate, ReadingLatest, SensorListCreate
-from DHT.views import HomeView , SensorPushView  # <= ajoute HomeView + (option push si tu l'as fait)
+from DHT.views import HomeView , SensorPushView , DashboardView  # <= ajoute HomeView + (option push si tu l'as fait)
 
 
 urlpatterns = [
 	path("", HomeView.as_view(), name="home"),  # <= page d’accueil JSON
+	path("dashboard/", DashboardView.as_view(), name="dashboard"),
     path("admin/", admin.site.urls),
     # Auth JWT
     path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),

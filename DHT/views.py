@@ -89,6 +89,11 @@ class HomeView(View):
         # })
         return render(request, "home.html")
 
+class DashboardView(View):
+    def get(self, request):
+        return render(request, "dashboard.html")  # ou "index.html"
+
+
 
 
 
