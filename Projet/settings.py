@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+from datetime import timedelta
 
 from pathlib import Path
 
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 	'rest_framework',
+  "rest_framework_simplejwt.token_blacklist",
     'corsheaders',
     'DHT',  # ton app
 ]
@@ -77,8 +79,24 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'Projet.wsgi.application'
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+CORS_ALLOW_CREDENTIALS = True
 
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+
+WSGI_APPLICATION = 'Projet.wsgi.application'
 
 
 REST_FRAMEWORK = {
@@ -86,9 +104,10 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",  # on sécurise par défaut
+        "rest_framework.permissions.IsAuthenticated",
     ),
 }
+
 
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

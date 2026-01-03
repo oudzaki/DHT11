@@ -1,15 +1,16 @@
 from rest_framework import serializers
-from .models import Reading, Sensor
+from .models import Sensor, Reading
 
-class ReadingSerializer(serializers.ModelSerializer):
-    sensor = serializers.SlugRelatedField(
-        slug_field="name", queryset=Sensor.objects.all()
-    )
-    class Meta:
-        model = Reading
-        fields = ["id", "sensor", "temperature", "humidity", "created_at"]
 
 class SensorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sensor
-        fields = ["id", "name", "ip_address"]
+        fields = ("id", "name", "ip_address")
+
+
+class ReadingSerializer(serializers.ModelSerializer):
+    sensorName = serializers.CharField(source="sensor.name", read_only=True)
+
+    class Meta:
+        model = Reading
+        fields = ("id", "sensor", "sensorName", "temperature", "humidity", "created_at")
