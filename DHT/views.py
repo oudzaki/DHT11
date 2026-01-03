@@ -20,6 +20,8 @@ from django.utils import timezone
 
 from .alerts_services import get_or_create_open_alert_for_sensor
 
+from .alerts_services import get_or_create_open_alert_for_sensor
+
 
 # -----------------------------
 # Web pages (html)
@@ -52,7 +54,7 @@ class SensorPushView(View):
 
             sensor, _ = Sensor.objects.get_or_create(name=name)
             reading = Reading.objects.create(sensor=sensor, temperature=temp, humidity=hum)
-            # Create / update OPEN alert if out-of-range (1 OPEN alert per sensor)
+            # Create / update OPEN alert if out-of-range (1 OPEN alert per sensor)            
             get_or_create_open_alert_for_sensor(sensor, reading)
 
             return JsonResponse({"status": "ok", "id": reading.id})

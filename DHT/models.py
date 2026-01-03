@@ -1,15 +1,16 @@
-from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+
 class Sensor(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    ip_address = models.GenericIPAddressField(null=True, blank=True)  # optionnel si tu « pull »
-    shared_key = models.CharField(max_length=128, blank=True, default="")  # clé simple si tu « push »
+    ip_address = models.GenericIPAddressField(null=True, blank=True)  # optional if you "pull"
+    shared_key = models.CharField(max_length=128, blank=True, default="")  # optional if you "push"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
+
 
 class Reading(models.Model):
     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE, related_name="readings")
@@ -17,31 +18,35 @@ class Reading(models.Model):
     humidity = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self) -> str:
+        return f"{self.sensor.name} @ {self.created_at}"
+
 
 class UserProfile(models.Model):
+    STATUS_ACTIVE = "ACTIVE"
+    STATUS_INACTIVE = "INACTIVE"
+
     STATUS_CHOICES = (
-        ("ACTIVE", "Active"),
-        ("INACTIVE", "Inactive"),
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_INACTIVE, "Inactive"),
     )
 
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name="profile"
-    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+
     phone = models.CharField(
         max_length=20,
         blank=True,
         null=True,
-        help_text="Phone number used for notifications (Twilio calls)"
+        help_text="Phone number used for notifications (Twilio calls)",
     )
+
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
-        default="ACTIVE"
+        default=STATUS_ACTIVE,
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.user.username} profile"
 
 
@@ -66,9 +71,9 @@ class Alert(models.Model):
         (SEV_HIGH, "High"),
     )
 
-    sensor = models.ForeignKey("Sensor", on_delete=models.CASCADE, related_name="alerts")
+    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE, related_name="alerts")
 
-    # Snapshot values (so alert detail keeps the triggering context)
+    # Snapshot values (keep context even if readings change)
     temperature = models.FloatField(null=True, blank=True)
     humidity = models.FloatField(null=True, blank=True)
 
@@ -78,36 +83,53 @@ class Alert(models.Model):
     # Escalation level (1=Operator, 2=Manager, 3=Admin)
     level = models.PositiveSmallIntegerField(default=1)
 
-    # Number of notifications sent without ACK (0..3). Capped at 3.
+    # Number of notifications sent without ACK for the CURRENT level (0..3)
     tries_without_response = models.PositiveSmallIntegerField(default=0)
 
     # Scheduling
     next_retry_at = models.DateTimeField(null=True, blank=True)
     last_notified_at = models.DateTimeField(null=True, blank=True)
 
+    # ACK / RESOLVE tracking
     acked_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="acked_alerts"
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="acked_alerts",
     )
     acked_at = models.DateTimeField(null=True, blank=True)
 
     resolved_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="resolved_alerts"
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="resolved_alerts",
     )
     resolved_at = models.DateTimeField(null=True, blank=True)
 
+    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["sensor", "status"]),
+            models.Index(fields=["status", "next_retry_at"]),
+            models.Index(fields=["created_at"]),
+        ]
 
     def is_open(self) -> bool:
         return self.status == self.STATUS_OPEN
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Alert#{self.id} {self.sensor.name} {self.status} L{self.level} T{self.tries_without_response}"
 
 
 class AlertNotificationLog(models.Model):
     """
-    Keeps audit of notifications sent.
+    Audit of notifications sent (email now, call later).
     """
     CHANNEL_EMAIL = "EMAIL"
     CHANNEL_CALL = "CALL"
@@ -117,18 +139,33 @@ class AlertNotificationLog(models.Model):
         (CHANNEL_CALL, "Call"),
     )
 
+    STATUS_SENT = "SENT"
+    STATUS_FAILED = "FAILED"
+
+    STATUS_CHOICES = (
+        (STATUS_SENT, "Sent"),
+        (STATUS_FAILED, "Failed"),
+    )
+
     alert = models.ForeignKey(Alert, on_delete=models.CASCADE, related_name="notification_logs")
     channel = models.CharField(max_length=10, choices=CHANNEL_CHOICES, default=CHANNEL_EMAIL)
 
-    # snapshot of recipients at send time (simple string list)
+    # Snapshot of recipients at send time (simple comma-separated list)
     recipients = models.TextField(blank=True, default="")
 
-    # attempt number for the current level
+    # Attempt number for the CURRENT level (1..3)
     attempt_number = models.PositiveSmallIntegerField(default=1)
 
     sent_at = models.DateTimeField(default=timezone.now)
-    status = models.CharField(max_length=20, default="SENT")  # SENT / FAILED
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_SENT)
     error = models.TextField(blank=True, default="")
 
-    def __str__(self):
+    class Meta:
+        indexes = [
+            models.Index(fields=["alert", "sent_at"]),
+            models.Index(fields=["channel", "status"]),
+        ]
+
+    def __str__(self) -> str:
         return f"Alert#{self.alert_id} {self.channel} attempt={self.attempt_number} {self.status}"
+    
