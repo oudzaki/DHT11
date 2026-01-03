@@ -172,3 +172,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+TEMP_MIN = 2.0
+TEMP_MAX = 8.0
+
+ESCALATION_COUNT = 3
+RETRY_DELAY_MINUTES = 5
+REPEAT_DELAY_MINUTES_LEVEL3 = 30
+

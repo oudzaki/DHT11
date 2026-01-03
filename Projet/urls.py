@@ -24,6 +24,14 @@ from DHT.auth_views import MyTokenObtainPairView, MeView, RegisterView, LogoutVi
 router = DefaultRouter()
 router.register(r"users", UserViewSet, basename="users")
 
+from DHT.alerts_views import AlertViewSet, MonitoringConfigViewSet
+
+router.register(r"alerts", AlertViewSet, basename="alerts")
+
+system_router = DefaultRouter()
+system_router.register(r"system/monitoring-config", MonitoringConfigViewSet, basename="monitoring-config")
+
+
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
@@ -38,6 +46,8 @@ urlpatterns = [
 
     # Users
     path("api/", include(router.urls)),
+
+    path("api/", include(system_router.urls)),
 
     # Sensors (FULL CRUD + status + latest measurement)
     path("api/sensors/", SensorListCreate.as_view(), name="sensors"),
