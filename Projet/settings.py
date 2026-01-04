@@ -28,6 +28,18 @@ SENSOR_API_KEY = os.environ.get("SENSOR_API_KEY", "secret1234")
 CORS_ALLOW_ALL_ORIGINS = True  # en dev
 
 
+# Notifications
+ENABLE_CALL_NOTIFICATIONS = True
+# Vonage Voice
+VONAGE_APPLICATION_ID = "bffbf9bc-4f27-4649-899b-09f1d7272116"
+# Tu peux mettre soit:
+# - le CONTENU du private key (commence par -----BEGIN PRIVATE KEY-----)
+# - ou un CHEMIN vers le fichier private.key
+VONAGE_PRIVATE_KEY = r"C:\Users\pro\Downloads\private.key"
+
+# Ton numéro Vonage (virtuel) format E.164, ex: "447700900000" ou "+447700900000"
+VONAGE_VIRTUAL_NUMBER = "12345678901"
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -178,6 +190,6 @@ TEMP_MIN = 2.0
 TEMP_MAX = 8.0
 
 ESCALATION_COUNT = 3
-RETRY_DELAY_MINUTES = 5
-REPEAT_DELAY_MINUTES_LEVEL3 = 30
+RETRY_DELAY_MINUTES = 3
+REPEAT_DELAY_MINUTES_LEVEL3 = 5
 

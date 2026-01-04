@@ -168,4 +168,70 @@ class AlertNotificationLog(models.Model):
 
     def __str__(self) -> str:
         return f"Alert#{self.alert_id} {self.channel} attempt={self.attempt_number} {self.status}"
-    
+
+
+class Ticket(models.Model):
+    """
+    Ticket = human work item (tracking intervention).
+    1 ticket per alert (OneToOne).
+    Created automatically when alert reaches level 3 (ADMIN), or manually from the UI.
+    """
+    STATUS_OPEN = "OPEN"
+    STATUS_IN_PROGRESS = "IN_PROGRESS"
+    STATUS_CLOSED = "CLOSED"
+
+    STATUS_CHOICES = (
+        (STATUS_OPEN, "Open"),
+        (STATUS_IN_PROGRESS, "In Progress"),
+        (STATUS_CLOSED, "Closed"),
+    )
+
+    PRIORITY_LOW = "LOW"
+    PRIORITY_MEDIUM = "MEDIUM"
+    PRIORITY_HIGH = "HIGH"
+
+    PRIORITY_CHOICES = (
+        (PRIORITY_LOW, "Low"),
+        (PRIORITY_MEDIUM, "Medium"),
+        (PRIORITY_HIGH, "High"),
+    )
+
+    alert = models.OneToOneField(
+        Alert,
+        on_delete=models.CASCADE,
+        related_name="ticket",
+    )
+
+    title = models.CharField(max_length=200, default="")
+    description = models.TextField(blank=True, default="")
+
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default=PRIORITY_MEDIUM)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_OPEN)
+
+    assigned_to = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_tickets",
+    )
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_tickets",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["status", "created_at"]),
+            models.Index(fields=["priority", "created_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"Ticket#{self.id} alert={self.alert_id} {self.status}"

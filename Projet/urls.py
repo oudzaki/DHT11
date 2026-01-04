@@ -19,7 +19,7 @@ from DHT.views import (
 
 from DHT.user_views import UserViewSet
 from DHT.auth_views import MyTokenObtainPairView, MeView, RegisterView, LogoutView
-
+from DHT.tickets_views import TicketViewSet
 
 router = DefaultRouter()
 router.register(r"users", UserViewSet, basename="users")
@@ -27,6 +27,8 @@ router.register(r"users", UserViewSet, basename="users")
 from DHT.alerts_views import AlertViewSet, MonitoringConfigViewSet
 
 router.register(r"alerts", AlertViewSet, basename="alerts")
+
+router.register(r"tickets", TicketViewSet, basename="tickets")
 
 system_router = DefaultRouter()
 system_router.register(r"system/monitoring-config", MonitoringConfigViewSet, basename="monitoring-config")
